@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# Clear the terminal screen
+clear
+
+# Function to validate numeric input, including ranges
+validate_numeric() {
+  re='^[0-9]+(-[0-9]+)?$'  # Regular expression to match numeric or numeric range
+
+  if ! [[ $1 =~ $re ]]; then
+    printf "Error: Input must be a numeric value or a numeric range (e.g., 1-7)."
+    exit 1
+  fi
+
+  # If it's a range, validate the range values
+  if [[ $1 =~ - ]]; then
+    start_value=$(echo "$1" | cut -d'-' -f1)
+    end_value=$(echo "$1" | cut -d'-' -f2)
+    if [[ $start_value -gt $end_value ]]; then
+      printf "Error: Invalid range. Start value must be less than or equal to end value."
+      exit 1
+    fi
+  fi
+}
+
+# Function to validate cron values including single and range entries for days
+validate_cron() {
+  if [[ $1 -lt 0 || $1 -gt 59 || $2 -lt 0 || $2 -gt 23 ]]; then
+    printf "Error: Invalid cron values. Minute (0-59) and Hour (0-23) are valid."
+    exit 1
+  fi
+
+  # Check if the input is a single day (1-7) or a valid range (e.g., 1-5)
+  re='^[1-7]$|^[0-7]-[0-7]$'
+  if [[ ! $3 =~ $re ]]; then
+    printf "Error: Invalid days format. Use single day (1-7) or valid range (e.g., 1-5)."
+    exit 1
+  fi
+
+  # If it's a range, validate the range values
+  if [[ $3 =~ ^[0-7]-[0-7]$ ]]; then
+    start_day=$(echo "$3" | cut -d'-' -f1)
+    end_day=$(echo "$3" | cut -d'-' -f2)
+    if [[ $start_day -gt $end_day || $start_day -lt 0 || $end_day -lt 0 || $start_day -gt 7 || $end_day -gt 7 ]]; then
+      printf "Error: Invalid days range. Valid range is 0-7, and start day must be less than or equal to end day."
+      exit 1
+    fi
+  fi
+}
+
+# Function to extract the main node number from /etc/asterisk/rpt.conf
+get_main_node_number() {
+  local main_node_number
+  if [ -f /etc/asterisk/rpt.conf ]; then
+    main_node_number=$(cat /etc/asterisk/rpt.conf | grep "\[[0-9]*\]" | awk -F'[][]' '{ if ($2 >= 2000 && $2 < 599999) print $2 }')
+    printf "%s" "$main_node_number"
+  else
+    printf "Error: /etc/asterisk/rpt.conf not found."
+    exit 1
+  fi
+}
+
+
+# Display an introductory message
+printf "AllStar/Hamvoip Node Cron Job Setup Script\n"
+printf "=====================================\n"
+printf "This script helps you set up cron jobs for \nconnecting and disconnecting AllStarLink nodes.\n"
+printf "You will be prompted for details for both connects and disconnects.\n"
+printf "Follow the prompts to configure the cron jobs.\n"
+printf "=====================================\n"
+
+# Get the main node number from /etc/asterisk/rpt.conf
+main_node_number=$(get_main_node_number)
+
+# Check if the main node number was found and display it
+if [ -n "$main_node_number" ]; then
+  printf "%s\n" "Main Node Number: $main_node_number"
+else
+  printf "Main node number not found in /etc/asterisk/rpt.conf."
+fi
+
+# Prompt for user input for connects
+read -p "Enter minute for connects (0-59): " minuteC
+validate_numeric "$minuteC"
+read -p "Enter hour for connects (0-23): " hourC
+validate_numeric "$hourC"
+read -p "Enter days of the week for connects (1-7 or * for everyday 1=Monday): " daysC
+#validate_numeric "$daysC"
+#validate_cron "$minuteC" "$hourC" #"$daysC"
+read -p "Enter AllStarLink node number for connects: " node_number
+validate_numeric "$node_number"
+
+# Construct the cron command for connects
+connect_command="asterisk -rx \"rpt fun $main_node_number *3$node_number\""
+
+# Prompt for user input for disconnects
+read -p "Enter minute for disconnects (0-59): " minuteD
+validate_numeric "$minuteD"
+read -p "Enter hour for disconnects (0-23): " hourD
+validate_numeric "$hourD"
+read -p "Enter days of the week for disconnects (1-7 or * for everyday 1=Monday): " daysD
+#validate_numeric "$daysD"
+#validate_cron "$minuteD" "$hourD" #"$daysD"
+
+# Construct the cron command for disconnects
+disconnect_command="asterisk -rx \"rpt fun $main_node_number *1$node_number\""
+
+# Add the cron entries for connects and disconnects to the user's crontab
+(crontab -l 2>/dev/null; printf "\n%s \n" "# Node $node_number (Connect at "$hourC":"$minuteC") and (Disconnect at "$hourD":"$minuteD"):") | crontab -
+(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteC" "$hourC" "$daysC" "$connect_command") | crontab -
+(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteD" "$hourD" "$daysD" "$disconnect_command") | crontab -
+
+# Check for errors and log
+if [ $? -eq 0 ]; then
+  printf "%s %s %s %s %s \n" "# Node $node_number (Connect at "$hourC":"$minuteC") and (Disconnect at "$hourD":"$minuteD"):"
+  printf "Connect:    %s %s * * %s %s\n" "$minuteC" "$hourC" "$daysC" "$connect_command"
+  printf "Disconnect: %s %s * * %s %s\n" "$minuteD" "$hourD" "$daysD" "$disconnect_command"
+  printf "Cron jobs successfully added." >> cron_setup.log
+else
+  printf "Error: Failed to add cron jobs." >> cron_setup.log
+fi
