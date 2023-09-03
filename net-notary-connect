@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Clear the terminal screen
+clear
+
+# Define color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RESET='\033[0m'
+
+# Function to extract the main node number from /etc/asterisk/rpt.conf
+get_main_node_number() {
+  local main_node_number
+  if [ -f /etc/asterisk/rpt.conf ]; then
+    main_node_number=$(cat /etc/asterisk/rpt.conf | grep "\[[0-9]*\]" | awk -F'[][]' '{ if ($2 >= 2000 && $2 < 599999) print $2 }')
+    printf "%s" "$main_node_number"
+  else
+    printf "${RED}Error: ${RESET}${YELLOW}/etc/asterisk/rpt.conf ${RED}not found.${RESET}"
+    exit 1
+  fi
+}
+
+# Display an introductory message with colors
+printf "${GREEN}AllStar${RED}/${YELLOW}Hamvoip${RESET} Node Cron Job Setup Script\n"
+printf "=====================================\n"
+printf "${YELLOW}This script helps you set up cron jobs for\nconnecting  AllStarLink nodes.\n"
+printf "You will be prompted for details for connects.\n"
+printf "${RED}Follow the prompts to configure the cron jobs.${RESET}\n"
+printf "=====================================\n"
+
+# Get the main node number from /etc/asterisk/rpt.conf
+main_node_number=$(get_main_node_number)
+
+# Check if the main node number was found and display it
+if [ -n "$main_node_number" ]; then
+  printf "%b%s\n" "Main Node Number: ${RED}$main_node_number${RESET}\n"
+else
+  printf "Main node number not found in /etc/asterisk/rpt.conf."
+fi
+
+# Define color codes for prompts
+PROMPT_COLOR='\033[0;36m'  # Cyan color for prompts
+
+# Prompt for user input for connects with color
+printf "${PROMPT_COLOR}Enter ${RESET}AllStarLink node number to connect: "
+read node_number
+printf "${PROMPT_COLOR}Enter ${RESET}hour to connect (${GREEN}0-23${RESET}): "
+read hourC
+printf "${PROMPT_COLOR}Enter ${RESET}minute to connect (${GREEN}0-59${RESET}): "
+read minuteC
+printf "${PROMPT_COLOR}Enter ${RESET}days of the week for connections (${GREEN}1-7 or * for everyday 1=Monday${RESET}): "
+read days
+
+# Construct the cron command for connects
+connect_command="asterisk -rx \"rpt fun $main_node_number *3$node_number\""
+
+# Add the cron entries for connects and disconnects to the user's crontab
+(crontab -l 2>/dev/null; printf "\n%s \n" "# Node $node_number (Connect at "$hourC":"$minuteC"):") | crontab -
+(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteC" "$hourC" "$days" "$connect_command") | crontab -
+
+printf "%b %s %s %s %s %s \n" "# Node ${GREEN}$node_number${RESET} (${GREEN}Connect at "$hourC":"$minuteC"${RESET}):"
+printf "${GREEN}Connect${RESET}:    %s %s * * %s %s\n" "$minuteC" "$hourC" "$days" "$connect_command"
