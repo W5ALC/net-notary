@@ -25,14 +25,32 @@ This script streamlines the setup of cron jobs for managing AllStarLink nodes. I
 ------------------------------------------
 
 # Installation:
-for debian based systems:
+for ASL systems:
+
 ```
 curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary | sudo bash -c 'cat > /usr/local/sbin/net-notary && chmod +x /usr/local/sbin/net-notary'
 ```
-for arch based systems:
+
+for Hamvoip systems:
+
 ```
 curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary | bash -c 'cat > /usr/local/sbin/net-notary && chmod +x /usr/local/sbin/net-notary'
 ```
+
+# I've also added a script to handle Connections only (NO DISCONNECTS)
+
+for ASL systems:
+
+```
+curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary-connect | sudo bash -c 'cat > /usr/local/sbin/net-notary-connect && chmod +x /usr/local/sbin/net-notary-connect'
+ ```
+
+for Hamvoip systems:
+
+```
+curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary-connect | bash -c 'cat > /usr/local/sbin/net-notary-connect && chmod +x /usr/local/sbin/net-notary-connect'
+```
+
 ------------------------------------------
 
 # Usage:
@@ -43,6 +61,7 @@ curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary | bas
 ```
 
 2. Follow the prompts to provide the required information for cron job setup:
+   
 ```
 Enter AllStarLink node number to connect: 29332
 
@@ -56,6 +75,25 @@ Enter minute to disconnect (0-59): 30
 
 Enter days of the week for connections (1-7 or * for everyday 1=Monday): *
 ```
+
+# Connects only
+
+1. Run the script using the following command:
+```
+   # net-notary-connect
+```
+
+2. Follow the prompts to provide the required information for cron job setup:
+```
+Enter AllStarLink node number to connect: 29332
+
+Enter hour to connect (0-23): 10
+
+Enter minute to connect (0-59): 30
+
+Enter days of the week for connections (1-7 or * for everyday 1=Monday): *
+```
+
 
 3. The script will automatically create cron entries for connecting and disconnecting the specified node based on your input.
 
