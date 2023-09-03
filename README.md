@@ -1,2 +1,87 @@
 # net-notary
-Allstarlink/Hamvoip cron scheduling script with connect and disconnect
+
+AllStar/Hamvoip Node Cron Job Setup Script
+
+------------------------------------------
+
+This Bash script simplifies the process of setting up cron jobs for connecting and disconnecting AllStarLink nodes on your system. It is designed to work on both Arch Linux and Debian-based systems, ensuring compatibility.
+
+------------------------------------------
+
+# Table of Contents:
+
+1. Introduction
+2. Prerequisites
+3. Usage
+4. Main Node Number
+5. Cron Job Configuration
+
+------------------------------------------
+
+# Introduction:
+
+This script streamlines the setup of cron jobs for managing AllStarLink nodes. It prompts you for the necessary information to create cron entries for connecting and disconnecting nodes, making it easier to automate these tasks.
+
+------------------------------------------
+
+# Installation:
+for debian based systems:
+```
+curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary | sudo bash -c 'cat > /usr/local/sbin/net-notary && chmod +x /usr/local/sbin/net-notary'
+```
+for arch based systems:
+```
+curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary | bash -c 'cat > /usr/local/sbin/net-notary && chmod +x /usr/local/sbin/net-notary'
+```
+------------------------------------------
+
+# Usage:
+
+1. Run the script using the following command:
+```
+   # net-notary
+```
+
+2. Follow the prompts to provide the required information for cron job setup:
+```
+Enter AllStarLink node number to connect: 29332
+
+Enter hour to connect (0-23): 10
+
+Enter minute to connect (0-59): 30
+
+Enter hour to disconnect (0-23): 13
+
+Enter minute to disconnect (0-59): 30
+
+Enter days of the week for connections (1-7 or * for everyday 1=Monday): *
+```
+
+3. The script will automatically create cron entries for connecting and disconnecting the specified node based on your input.
+
+------------------------------------------
+
+Main Node Number:
+
+The script extracts the main node number from the /etc/asterisk/rpt.conf file. Make sure this file exists and is properly configured for accurate results.
+
+------------------------------------------
+
+# Cron Job Configuration:
+
+The script constructs the cron commands for connecting and disconnecting nodes and adds them to your user's crontab. The commands are scheduled to run at the specified times and days of the week.
+
+Here's an example of the generated cron entries:
+
+```
+# Node 29332 (Connect at 10:30) and (Disconnect at 13:30):      
+
+Connect:    30 10 * * * asterisk -rx "rpt fun 49947 *329332"
+
+Disconnect: 30 13 * * * asterisk -rx "rpt fun 49947 *129332"
+```
+------------------------------------------
+
+Feel free to customize this script to suit your specific needs and requirements. Happy automating your AllStarLink nodes!
+
+![net-notary](https://github.com/W5ALC/ARES/blob/main/net-notary.gif?raw=true)
