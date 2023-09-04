@@ -37,31 +37,27 @@ for Hamvoip systems:
 curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary | bash -c 'cat > /usr/local/sbin/net-notary && chmod +x /usr/local/sbin/net-notary'
 ```
 
-# I've also added a script to handle Connections only (NO DISCONNECTS)
-
-for ASL systems:
-
-```
-curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary-connect | sudo bash -c 'cat > /usr/local/sbin/net-notary-connect && chmod +x /usr/local/sbin/net-notary-connect'
- ```
-
-for Hamvoip systems:
-
-```
-curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary-connect | bash -c 'cat > /usr/local/sbin/net-notary-connect && chmod +x /usr/local/sbin/net-notary-connect'
-```
-
-------------------------------------------
 
 # Usage:
 
-1. Run the script using the following command:
+1. Run the script using the following command or with the flag "-c" for connects only or "-d" for disconnects only
 ```
    # net-notary
 ```
+```
+   # net-notary -c    # for connect only cron entries
+```
+```
+   # net-notary -d    # for disconnect only cron entries
+```
+
+
+------------------------------------------
 
 2. Follow the prompts to provide the required information for cron job setup:
-   
+```
+    # net-notary
+```
 ```
 Enter AllStarLink node number to connect: 29332
 
@@ -80,7 +76,7 @@ Enter days of the week for connections (1-7 or * for everyday 1=Monday): *
 
 1. Run the script using the following command:
 ```
-   # net-notary-connect
+   # net-notary -c
 ```
 
 2. Follow the prompts to provide the required information for cron job setup:
@@ -93,6 +89,25 @@ Enter minute to connect (0-59): 30
 
 Enter days of the week for connections (1-7 or * for everyday 1=Monday): *
 ```
+
+# Disconnects only
+
+1. Run the script using the following command:
+```
+   # net-notary -d
+```
+
+2. Follow the prompts to provide the required information for cron job setup:
+```
+Enter AllStarLink node number to disconnect: 29332
+
+Enter hour to disconnect (0-23): 10
+
+Enter minute to disconnect (0-59): 30
+
+Enter days of the week for disconnections (1-7 or * for everyday 1=Monday): *
+```
+
 
 
 3. The script will automatically create cron entries for connecting and disconnecting the specified node based on your input.
@@ -111,9 +126,9 @@ The script constructs the cron commands for connecting and disconnecting nodes a
 
 Here's an example of the generated cron entries:
 
-```
-# Node 29332 (Connect at 10:30) and (Disconnect at 13:30):      
+------------------------------------------
 
+```
 Connect:    30 10 * * * asterisk -rx "rpt fun 49947 *329332"
 
 Disconnect: 30 13 * * * asterisk -rx "rpt fun 49947 *129332"
