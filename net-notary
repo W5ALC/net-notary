@@ -21,141 +21,164 @@ get_main_node_number() {
   fi
 }
 
+# Function to display a thorough how-to guide
+show_help() {
+  printf "${GREEN}AllStar${RED}/${YELLOW}Hamvoip${RESET} Node Cron Job Setup Script\n"
+  printf "=====================================\n"
+  printf "${YELLOW}This script helps you set up cron jobs \nfor connecting and disconnecting AllStarLink nodes.${RESET}\n"
+  printf "=====================================\n"
+  printf "Usage:\n"
+  printf "To set up a cron job to connect and disconnect a node:\n"
+  printf "${RED}# ${GREEN}net-notary ${RESET}\n"
+  printf "To set up a cron job to connect a node:\n"
+  printf "${RED}# ${GREEN}net-notary -c${RESET}\n"
+  printf "To set up a cron job to disconnect a node:\n"
+  printf "${RED}# ${GREEN}net-notary -d${RESET}\n"
+  printf "To display this help message:\n"
+  printf "${RED}# ${GREEN}net-notary -h${RESET}\n"
+  printf "Follow the prompts to configure the cron jobs.\n"
+  printf "=====================================\n"
+}
 
+# Check for the -h flag
+if [[ $1 == "-h" ]]; then
+  show_help
+  exit 0
+fi
 
 
 if [[ $1 == "-c" ]]; then
 
-# Display an introductory message with colors
-printf "${GREEN}AllStar${RED}/${YELLOW}Hamvoip${RESET} Node Cron Job Setup Script\n"
-printf "=====================================\n"
-printf "${YELLOW}This script helps you set up cron jobs for\nconnecting  AllStarLink nodes.\n"
-printf "You will be prompted for details for connects.\n"
-printf "${RED}Follow the prompts to configure the cron jobs.${RESET}\n"
-printf "=====================================\n"
+			# Display an introductory message with colors
+			printf "${GREEN}AllStar${RED}/${YELLOW}Hamvoip${RESET} Node Cron Job Setup Script\n"
+			printf "=====================================\n"
+			printf "${YELLOW}This script helps you set up cron jobs for\nconnecting  AllStarLink nodes.\n"
+			printf "You will be prompted for details for connects.\n"
+			printf "${RED}Follow the prompts to configure the cron jobs.${RESET}\n"
+			printf "=====================================\n"
 
-# Get the main node number from /etc/asterisk/rpt.conf
-main_node_number=$(get_main_node_number)
+			# Get the main node number from /etc/asterisk/rpt.conf
+			main_node_number=$(get_main_node_number)
 
-# Check if the main node number was found and display it
-if [ -n "$main_node_number" ]; then
-  printf "%b%s\n" "Main Node Number: ${RED}$main_node_number${RESET}\n"
+			# Check if the main node number was found and display it
+					if [ -n "$main_node_number" ]; then
+					  printf "%b%s\n" "Main Node Number: ${RED}$main_node_number${RESET}\n"
+					else
+					  printf "Main node number not found in /etc/asterisk/rpt.conf."
+					fi
+
+			# Define color codes for prompts
+			PROMPT_COLOR='\033[0;36m'  # Cyan color for prompts
+
+			# Prompt for user input for connects with color
+			printf "${PROMPT_COLOR}Enter ${RESET}AllStarLink node number to connect: "
+			read node_number
+			printf "${PROMPT_COLOR}Enter ${RESET}hour to connect (${GREEN}0-23${RESET}): "
+			read hourC
+			printf "${PROMPT_COLOR}Enter ${RESET}minute to connect (${GREEN}0-59${RESET}): "
+			read minuteC
+			printf "${PROMPT_COLOR}Enter ${RESET}days of the week for connections (${GREEN}1-7 or * for everyday 1=Monday${RESET}): "
+			read days
+
+			# Construct the cron command for connects
+			connect_command="asterisk -rx \"rpt fun $main_node_number *3$node_number\""
+
+			# Add the cron entries for connects and disconnects to the user's crontab
+			(crontab -l 2>/dev/null; printf "\n%s \n" "# Node $node_number (Connect at "$hourC":"$minuteC"):") | crontab -
+			(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteC" "$hourC" "$days" "$connect_command") | crontab -
+
+			printf "%b %s %s %s %s \n" "# Node ${GREEN}$node_number${RESET} (${GREEN}Connect at "$hourC":"$minuteC"${RESET}):"
+			printf "${GREEN}Connect${RESET}:    %s %s * * %s %s\n" "$minuteC" "$hourC" "$days" "$connect_command"
+
+elif [[ $1 == "-d" ]] ; then
+			# Display an introductory message with colors
+			printf "${GREEN}AllStar${RED}/${YELLOW}Hamvoip${RESET} Node Cron Job Setup Script\n"
+			printf "=====================================\n"
+			printf "${YELLOW}This script helps you set up cron jobs for\n disconnecting AllStarLink nodes.\n"
+			printf "You will be prompted for details for disconnects.\n"
+			printf "${RED}Follow the prompts to configure the cron jobs.${RESET}\n"
+			printf "=====================================\n"
+
+			# Get the main node number from /etc/asterisk/rpt.conf
+			main_node_number=$(get_main_node_number)
+
+			# Check if the main node number was found and display it
+			if [ -n "$main_node_number" ]; then
+			  printf "%b%s\n" "Main Node Number: ${RED}$main_node_number${RESET}\n"
+			else
+			  printf "Main node number not found in /etc/asterisk/rpt.conf."
+			fi
+
+			# Define color codes for prompts
+			PROMPT_COLOR='\033[0;36m'  # Cyan color for prompts
+
+			# Prompt for user input for connects with color
+			printf "${PROMPT_COLOR}Enter ${RESET}AllStarLink node number to disconnect: "
+			read node_number
+			printf "${PROMPT_COLOR}Enter ${RESET}hour to disconnect (${GREEN}0-23${RESET}): "
+			read hourD
+			printf "${PROMPT_COLOR}Enter ${RESET}minute to disconnect (${GREEN}0-59${RESET}): "
+			read minuteD
+			printf "${PROMPT_COLOR}Enter ${RESET}days of the week for connections (${GREEN}1-7 or * for everyday 1=Monday${RESET}): "
+			read days
+
+			# Construct the cron command for disconnects
+			disconnect_command="asterisk -rx \"rpt fun $main_node_number *1$node_number\""
+
+			# Add the cron entries for connects and disconnects to the user's crontab
+			(crontab -l 2>/dev/null; printf "\n%s \n" "# Node $node_number (Disconnect at "$hourD":"$minuteD"):") | crontab -
+			(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteD" "$hourD" "$days" "$disconnect_command") | crontab -
+
+			printf "%b %s %s %s %s %s \n" "# Node ${GREEN}$node_number${RESET} (${RED}Disconnect at "$hourD":"$minuteD"${RESET}):"
+			printf "${RED}Disconnect${RESET}: %s %s * * %s %s\n" "$minuteD" "$hourD" "$days" "$disconnect_command"
 else
-  printf "Main node number not found in /etc/asterisk/rpt.conf."
-fi
+			# Display an introductory message with colors
+			printf "${GREEN}AllStar${RED}/${YELLOW}Hamvoip${RESET} Node Cron Job Setup Script\n"
+			printf "=====================================\n"
+			printf "${YELLOW}This script helps you set up cron jobs for\nconnecting and disconnecting AllStarLink nodes.\n"
+			printf "You will be prompted for details for both connects and disconnects.\n"
+			printf "${RED}Follow the prompts to configure the cron jobs.${RESET}\n"
+			printf "=====================================\n"
 
-# Define color codes for prompts
-PROMPT_COLOR='\033[0;36m'  # Cyan color for prompts
+			# Get the main node number from /etc/asterisk/rpt.conf
+			main_node_number=$(get_main_node_number)
 
-# Prompt for user input for connects with color
-printf "${PROMPT_COLOR}Enter ${RESET}AllStarLink node number to connect: "
-read node_number
-printf "${PROMPT_COLOR}Enter ${RESET}hour to connect (${GREEN}0-23${RESET}): "
-read hourC
-printf "${PROMPT_COLOR}Enter ${RESET}minute to connect (${GREEN}0-59${RESET}): "
-read minuteC
-printf "${PROMPT_COLOR}Enter ${RESET}days of the week for connections (${GREEN}1-7 or * for everyday 1=Monday${RESET}): "
-read days
+			# Check if the main node number was found and display it
+			if [ -n "$main_node_number" ]; then
+			  printf "%b%s\n" "Main Node Number: ${RED}$main_node_number${RESET}\n"
+			else
+			  printf "Main node number not found in /etc/asterisk/rpt.conf."
+			fi
 
-# Construct the cron command for connects
-connect_command="asterisk -rx \"rpt fun $main_node_number *3$node_number\""
+			# Define color codes for prompts
+			PROMPT_COLOR='\033[0;36m'  # Cyan color for prompts
 
-# Add the cron entries for connects and disconnects to the user's crontab
-(crontab -l 2>/dev/null; printf "\n%s \n" "# Node $node_number (Connect at "$hourC":"$minuteC"):") | crontab -
-(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteC" "$hourC" "$days" "$connect_command") | crontab -
+			# Prompt for user input for connects with color
+			printf "${PROMPT_COLOR}Enter ${RESET}AllStarLink node number to connect: "
+			read node_number
+			printf "${PROMPT_COLOR}Enter ${RESET}hour to connect (${GREEN}0-23${RESET}): "
+			read hourC
+			printf "${PROMPT_COLOR}Enter ${RESET}minute to connect (${GREEN}0-59${RESET}): "
+			read minuteC
+			printf "${PROMPT_COLOR}Enter ${RESET}hour to disconnect (${GREEN}0-23${RESET}): "
+			read hourD
+			printf "${PROMPT_COLOR}Enter ${RESET}minute to disconnect (${GREEN}0-59${RESET}): "
+			read minuteD
+			printf "${PROMPT_COLOR}Enter ${RESET}days of the week for connections (${GREEN}1-7 or * for everyday 1=Monday${RESET}): "
+			read days
 
-printf "%b %s %s %s %s \n" "# Node ${GREEN}$node_number${RESET} (${GREEN}Connect at "$hourC":"$minuteC"${RESET}):"
-printf "${GREEN}Connect${RESET}:    %s %s * * %s %s\n" "$minuteC" "$hourC" "$days" "$connect_command"
+			# Construct the cron command for connects
+			connect_command="asterisk -rx \"rpt fun $main_node_number *3$node_number\""
 
-	elif [[ $1 == "-d" ]] ; then 
-	# Display an introductory message with colors
-printf "${GREEN}AllStar${RED}/${YELLOW}Hamvoip${RESET} Node Cron Job Setup Script\n"
-printf "=====================================\n"
-printf "${YELLOW}This script helps you set up cron jobs for\n disconnecting AllStarLink nodes.\n"
-printf "You will be prompted for details for disconnects.\n"
-printf "${RED}Follow the prompts to configure the cron jobs.${RESET}\n"
-printf "=====================================\n"
+			# Construct the cron command for disconnects
+			disconnect_command="asterisk -rx \"rpt fun $main_node_number *1$node_number\""
 
-# Get the main node number from /etc/asterisk/rpt.conf
-main_node_number=$(get_main_node_number)
+			# Add the cron entries for connects and disconnects to the user's crontab
+			(crontab -l 2>/dev/null; printf "\n%s \n" "# Node $node_number (Connect at "$hourC":"$minuteC") and (Disconnect at "$hourD":"$minuteD"):") | crontab -
+			(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteC" "$hourC" "$days" "$connect_command") | crontab -
+			(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteD" "$hourD" "$days" "$disconnect_command") | crontab -
 
-# Check if the main node number was found and display it
-if [ -n "$main_node_number" ]; then
-  printf "%b%s\n" "Main Node Number: ${RED}$main_node_number${RESET}\n"
-else
-  printf "Main node number not found in /etc/asterisk/rpt.conf."
-fi
-
-# Define color codes for prompts
-PROMPT_COLOR='\033[0;36m'  # Cyan color for prompts
-
-# Prompt for user input for connects with color
-printf "${PROMPT_COLOR}Enter ${RESET}AllStarLink node number to disconnect: "
-read node_number
-printf "${PROMPT_COLOR}Enter ${RESET}hour to disconnect (${GREEN}0-23${RESET}): "
-read hourD
-printf "${PROMPT_COLOR}Enter ${RESET}minute to disconnect (${GREEN}0-59${RESET}): "
-read minuteD
-printf "${PROMPT_COLOR}Enter ${RESET}days of the week for connections (${GREEN}1-7 or * for everyday 1=Monday${RESET}): "
-read days
-
-# Construct the cron command for disconnects
-disconnect_command="asterisk -rx \"rpt fun $main_node_number *1$node_number\""
-
-# Add the cron entries for connects and disconnects to the user's crontab
-(crontab -l 2>/dev/null; printf "\n%s \n" "# Node $node_number (Disconnect at "$hourD":"$minuteD"):") | crontab -
-(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteD" "$hourD" "$days" "$disconnect_command") | crontab -
-
-printf "%b %s %s %s %s %s \n" "# Node ${GREEN}$node_number${RESET} (${RED}Disconnect at "$hourD":"$minuteD"${RESET}):"
-printf "${RED}Disconnect${RESET}: %s %s * * %s %s\n" "$minuteD" "$hourD" "$days" "$disconnect_command"
-else
-# Display an introductory message with colors
-printf "${GREEN}AllStar${RED}/${YELLOW}Hamvoip${RESET} Node Cron Job Setup Script\n"
-printf "=====================================\n"
-printf "${YELLOW}This script helps you set up cron jobs for\nconnecting and disconnecting AllStarLink nodes.\n"
-printf "You will be prompted for details for both connects and disconnects.\n"
-printf "${RED}Follow the prompts to configure the cron jobs.${RESET}\n"
-printf "=====================================\n"
-
-# Get the main node number from /etc/asterisk/rpt.conf
-main_node_number=$(get_main_node_number)
-
-# Check if the main node number was found and display it
-if [ -n "$main_node_number" ]; then
-  printf "%b%s\n" "Main Node Number: ${RED}$main_node_number${RESET}\n"
-else
-  printf "Main node number not found in /etc/asterisk/rpt.conf."
-fi
-
-# Define color codes for prompts
-PROMPT_COLOR='\033[0;36m'  # Cyan color for prompts
-
-# Prompt for user input for connects with color
-printf "${PROMPT_COLOR}Enter ${RESET}AllStarLink node number to connect: "
-read node_number
-printf "${PROMPT_COLOR}Enter ${RESET}hour to connect (${GREEN}0-23${RESET}): "
-read hourC
-printf "${PROMPT_COLOR}Enter ${RESET}minute to connect (${GREEN}0-59${RESET}): "
-read minuteC
-printf "${PROMPT_COLOR}Enter ${RESET}hour to disconnect (${GREEN}0-23${RESET}): "
-read hourD
-printf "${PROMPT_COLOR}Enter ${RESET}minute to disconnect (${GREEN}0-59${RESET}): "
-read minuteD
-printf "${PROMPT_COLOR}Enter ${RESET}days of the week for connections (${GREEN}1-7 or * for everyday 1=Monday${RESET}): "
-read days
-
-# Construct the cron command for connects
-connect_command="asterisk -rx \"rpt fun $main_node_number *3$node_number\""
-
-# Construct the cron command for disconnects
-disconnect_command="asterisk -rx \"rpt fun $main_node_number *1$node_number\""
-
-# Add the cron entries for connects and disconnects to the user's crontab
-(crontab -l 2>/dev/null; printf "\n%s \n" "# Node $node_number (Connect at "$hourC":"$minuteC") and (Disconnect at "$hourD":"$minuteD"):") | crontab -
-(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteC" "$hourC" "$days" "$connect_command") | crontab -
-(crontab -l 2>/dev/null; printf "%s %s * * %s %s\n" "$minuteD" "$hourD" "$days" "$disconnect_command") | crontab -
-
-printf "%b %s %s %s %s %s \n" "# Node ${GREEN}$node_number${RESET} (${GREEN}Connect at "$hourC":"$minuteC"${RESET}) and (${RED}Disconnect at "$hourD":"$minuteD"${RESET}):"
-printf "${GREEN}Connect${RESET}:    %s %s * * %s %s\n" "$minuteC" "$hourC" "$days" "$connect_command"
-printf "${RED}Disconnect${RESET}: %s %s * * %s %s\n" "$minuteD" "$hourD" "$days" "$disconnect_command"
+			printf "%b %s %s %s %s %s \n" "# Node ${GREEN}$node_number${RESET} (${GREEN}Connect at "$hourC":"$minuteC"${RESET}) and (${RED}Disconnect at "$hourD":"$minuteD"${RESET}):"
+			printf "${GREEN}Connect${RESET}:    %s %s * * %s %s\n" "$minuteC" "$hourC" "$days" "$connect_command"
+			printf "${RED}Disconnect${RESET}: %s %s * * %s %s\n" "$minuteD" "$hourD" "$days" "$disconnect_command"
 fi
