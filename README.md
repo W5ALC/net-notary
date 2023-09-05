@@ -38,7 +38,7 @@ curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary | bas
 ```
 
 
-# Usage:
+# Usage:  MUST BE RAN AS ROOT
 
 1. Run the script using the following command or with the flag "-c" for connects only or "-d" for disconnects only
 ```
