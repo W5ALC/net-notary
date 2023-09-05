@@ -44,13 +44,17 @@ curl -s https://raw.githubusercontent.com/W5ALC/net-notary/main/net-notary | bas
 ```
    # net-notary
 ```
+![net-notary](https://github.com/W5ALC/ARES/blob/main/net-notary.png)
+
 ```
    # net-notary -c    # for connect only cron entries
 ```
+![net-notary-c](https://github.com/W5ALC/ARES/blob/main/net-notary-c.png)
+
 ```
    # net-notary -d    # for disconnect only cron entries
 ```
-
+![net-notary-d](https://github.com/W5ALC/ARES/blob/main/net-notary-d.png)
 
 ------------------------------------------
 
