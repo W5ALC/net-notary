@@ -4,6 +4,8 @@ AllStar/Hamvoip Node Cron Job Setup Script
 
 ------------------------------------------
 
+![net-notary](https://github.com/W5ALC/ARES/blob/main/net-notary-new.gif?raw=true)
+
 This Bash script simplifies the process of setting up cron jobs for connecting and disconnecting AllStarLink nodes on your system. It is designed to work on both Arch Linux and Debian-based systems, ensuring compatibility.
 
 ------------------------------------------
@@ -141,4 +143,3 @@ Disconnect: 30 13 * * * asterisk -rx "rpt fun 49947 *129332"
 
 Feel free to customize this script to suit your specific needs and requirements. Happy automating your AllStarLink nodes!
 
-![net-notary](https://github.com/W5ALC/ARES/blob/main/net-notary-new.gif?raw=true)
