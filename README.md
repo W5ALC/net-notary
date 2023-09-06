@@ -141,4 +141,4 @@ Disconnect: 30 13 * * * asterisk -rx "rpt fun 49947 *129332"
 
 Feel free to customize this script to suit your specific needs and requirements. Happy automating your AllStarLink nodes!
 
-![net-notary](https://github.com/W5ALC/ARES/blob/main/net-notary.gif?raw=true)
+![net-notary](https://github.com/W5ALC/ARES/blob/main/net-notary-new.gif?raw=true)
